@@ -1,5 +1,5 @@
 # uModBusTcpServer
-ESP32 modbustcp server
+micropython ESP32 modbustcp server
 
 源码出处:
 
