@@ -1,7 +1,7 @@
 # uModBusTcpServer
 micropython ESP32 modbustcp server
 
-源码出处:
+源码参考:
 
 https://github.com/pycom/pycom-modbus
 
