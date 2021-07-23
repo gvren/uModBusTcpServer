@@ -108,12 +108,12 @@ class ModbusSerialRtuSlave:
 
 
 if __name__ == '__main__':
-    # modbustcp
-    tcpslave = ModbusTcpSlave(local_ip="127.0.0.1", local_port=502, coils=[1, 0, 0, 1, 0, 1],
-                              holdingregisters=[100, 200, 300, 400])
-    tcpslave.server_forver()
+    # # modbustcp
+    # tcpslave = ModbusTcpSlave(local_ip='127.0.0.1', local_port=502, coils=[1, 1, 1, 1, 0, 0, 0, 0],
+    #                           holdingregisters=[1, 2, 3, 4, 5, 6, 7, 8, 100, 200, 300])
+    # tcpslave.server_forver()
 
-    # # modbusserial
-    # serial = Serial(uart_id=2)
-    # rtuslave = ModbusSerialSlave(serial=serial, coils=[1, 0, 0, 1, 0, 1], holdingregisters=[100, 200, 300, 400])
-    # rtuslave.server_forver()
+    # rtuserver
+    rtuslave = ModbusSerialRtuSlave(1, baudrate=9600, tx=33, rx=32, unit_addr_list=[1], coils=[0, 0, 0, 0, 1, 1, 1, 1],
+                                    holdingregisters=[100, 200, 300, 400, 1, 2, 3, 4])
+    rtuslave.server_forver()
