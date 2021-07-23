@@ -17,11 +17,15 @@ import struct
 import time
 import machine
 
+
 class Serial:
 
-    def __init__(self, uart_id, baudrate=9600, data_bits=8, stop_bits=1, parity=None, pins=None, ctrl_pin=None):
+    def __init__(self, uart_id, baudrate=9600, data_bits=8, stop_bits=1, parity=None, pins=None, tx=None, rx=None,
+                 ctrl_pin=None):
+        # self._uart = UART(uart_id, baudrate=baudrate, bits=data_bits, parity=parity, \
+        #                   stop=stop_bits, timeout_chars=2, pins=pins)
         self._uart = UART(uart_id, baudrate=baudrate, bits=data_bits, parity=parity, \
-                          stop=stop_bits, timeout_chars=2, pins=pins)
+                          stop=stop_bits, timeout_char=2, tx=tx, rx=rx)
         if ctrl_pin is not None:
             self._ctrlPin = Pin(ctrl_pin, mode=Pin.OUT)
         else:
@@ -38,7 +42,7 @@ class Serial:
         for char in data:
             crc = (crc >> 8) ^ Const.CRC16_TABLE[((crc) ^ char) & 0xFF]
 
-        return struct.pack('<H',crc)
+        return struct.pack('<H', crc)
 
     def _bytes_to_bool(self, byte_list):
         bool_list = []
@@ -71,7 +75,7 @@ class Serial:
 
         for x in range(1, 40):
             if self._uart.any():
-                response.extend(self._uart.readall())
+                response.extend(self._uart.read())
                 # variable length function codes may require multiple reads
                 if self._exit_read(response):
                     break
@@ -83,10 +87,10 @@ class Serial:
         bytes = bytearray()
 
         start_ms = time.ticks_ms()
-        while timeout == None or time.ticks_diff(start_ms, time.ticks_ms()) <= timeout:
+        while timeout == None or time.ticks_diff(time.ticks_ms(), start_ms) <= timeout:
             last_byte_ts = time.ticks_us()
-            while time.ticks_diff(last_byte_ts, time.ticks_us()) <= self._t35chars:
-                r = self._uart.readall()
+            while time.ticks_diff(time.ticks_us(), last_byte_ts) <= self._t35chars:
+                r = self._uart.read()
                 if r != None:
                     bytes.extend(r)
                     last_byte_ts = time.ticks_us()
@@ -137,7 +141,7 @@ class Serial:
 
         hdr_length = (Const.RESPONSE_HDR_LENGTH + 1) if count else Const.RESPONSE_HDR_LENGTH
 
-        return response[hdr_length : len(response) - Const.CRC_LENGTH]
+        return response[hdr_length: len(response) - Const.CRC_LENGTH]
 
     def read_coils(self, slave_addr, starting_addr, coil_qty):
         modbus_pdu = functions.read_coils(starting_addr, coil_qty)
@@ -207,8 +211,10 @@ class Serial:
 
         return operation_status
 
-    def send_response(self, slave_addr, function_code, request_register_addr, request_register_qty, request_data, values=None, signed=True):
-        modbus_pdu = functions.response(function_code, request_register_addr, request_register_qty, request_data, values, signed)
+    def send_response(self, slave_addr, function_code, request_register_addr, request_register_qty, request_data,
+                      values=None, signed=True):
+        modbus_pdu = functions.response(function_code, request_register_addr, request_register_qty, request_data,
+                                        values, signed)
         self._send(modbus_pdu, slave_addr)
 
     def send_exception_response(self, slave_addr, function_code, exception_code):

@@ -173,7 +173,8 @@ class TCPServer:
             new_client_sock, client_address = self._sock.accept()
         except OSError as e:
             if e.args[0] != 11: # 11 = timeout expired
-                raise e
+                # raise e
+                pass
 
         if new_client_sock != None:
             if self._client_sock != None:
